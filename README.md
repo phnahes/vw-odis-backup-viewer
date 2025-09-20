@@ -1,147 +1,147 @@
 # 🔧 ODIS Backup Decoder - VW
 
-Um decodificador web para relatórios de backup do ODIS Engineering da Volkswagen, permitindo visualizar e analisar dados de diagnóstico de veículos VW de forma organizada e intuitiva.
+A web-based decoder for Volkswagen ODIS Engineering backup reports, allowing you to visualize and analyze VW vehicle diagnostic data in an organized and intuitive way.
 
-## 📋 Funcionalidades
+## 📋 Features
 
-### 🚗 Informações do Veículo
-- **VIN Decodificado**: Fabricante, modelo, ano, planta e número de série
-- **Dados Básicos**: Quilometragem, horário onboard, projeto MCD
-- **Validação Automática**: Decodificação automática do VIN quando disponível
+### 🚗 Vehicle Information
+- **Decoded VIN**: Manufacturer, model, year, plant, and serial number
+- **Basic Data**: Mileage, onboard time, MCD project
+- **Automatic Validation**: Automatic VIN decoding when available
 
-### ⚙️ Componentes ECU
-- **Identificação Completa**: Sistema, software, hardware, número da peça
-- **Status Visual**: Indicadores de status (OK, Warning, Error)
-- **Seções Organizadas**: Adaptações, coding e subsistemas
+### ⚙️ ECU Components
+- **Complete Identification**: System, software, hardware, part number
+- **Visual Status**: Status indicators (OK, Warning, Error)
+- **Organized Sections**: Adaptations, coding, and subsystems
 
-### 🔍 Especificações de Coding
-- **Bytes Detalhados**: Exibição formatada (ex: `Byte00: 0000 0011 ($03)`)
-- **Formato Legível**: Valores binários com espaços e hexadecimal maiúsculo
-- **Interface Expansível**: Seções colapsáveis para melhor organização
+### 🔍 Coding Specifications
+- **Detailed Bytes**: Formatted display (e.g., `Byte00: 0000 0011 ($03)`)
+- **Readable Format**: Binary values with spaces and uppercase hexadecimal
+- **Expandable Interface**: Collapsible sections for better organization
 
-### 🔧 Adaptações
-- **Sessões Agrupadas**: Organizadas por categorias `[VO]_`
-- **Valores Detalhados**: Parâmetros `[LO]_` e `[LN]_` com seus valores
-- **Navegação Intuitiva**: Estrutura hierárquica expansível
+### 🔧 Adaptations
+- **Grouped Sessions**: Organized by `[VO]_` categories
+- **Detailed Values**: `[LO]_` and `[LN]_` parameters with their values
+- **Intuitive Navigation**: Expandable hierarchical structure
 
-### 🔗 Subsistemas
-- **Identificação**: Número do subsistema e designação do sistema
-- **Versões**: Software e informações técnicas
-- **Organização**: Agrupados por componente principal
+### 🔗 Subsystems
+- **Identification**: Subsystem number and system designation
+- **Versions**: Software and technical information
+- **Organization**: Grouped by main component
 
-## 🚀 Como Usar
+## 🚀 How to Use
 
-### 1. Abrir o Decodificador
+### 1. Open the Decoder
 ```bash
-# Clone o repositório
+# Clone the repository
 git clone https://github.com/phnahes/vw-odis-backup-viewer.git
 cd vw-odis-backup-viewer
 
-# Abra o arquivo no navegador
-open odis-decoder.html
+# Open the file in browser
+open index.html
 ```
 
-### 2. Carregar Arquivo
-- **Arraste e solte** o arquivo de backup do ODIS na área indicada
-- **Ou clique** em "Selecionar Arquivo" para navegar
-- **Formatos suportados**: `.html`, `.htm`, `.xml`
+### 2. Load File
+- **Drag and drop** the ODIS backup file into the indicated area
+- **Or click** "Select File" to browse
+- **Supported formats**: `.html`, `.htm`, `.xml`
 
-### 3. Navegar pelos Dados
-- **Expandir seções**: Clique nas setas `▶` para ver detalhes
-- **Informações organizadas**: Dados agrupados por componente
-- **Interface responsiva**: Funciona em desktop e mobile
+### 3. Navigate Data
+- **Expand sections**: Click the `▶` arrows to see details
+- **Organized information**: Data grouped by component
+- **Responsive interface**: Works on desktop and mobile
 
-## 📁 Estrutura do Projeto
+## 📁 Project Structure
 
 ```
 vw-odis-backup-viewer/
-├── odis-decoder.html          # Interface principal
-├── vin-decoder.js            # Decodificador de VIN
-├── README.md                 # Este arquivo
-└── exemplos/
-    ├── *.html               # Arquivos HTML do ODIS
-    └── *.xml                # Arquivos XML do ODIS
+├── index.html               # Main interface
+├── vin-decoder.js          # VIN decoder
+├── README.md               # This file
+└── examples/
+    ├── *.html             # ODIS HTML files
+    └── *.xml              # ODIS XML files
 ```
 
-## 🛠️ Tecnologias
+## 🛠️ Technologies
 
-- **HTML5**: Interface moderna e responsiva
-- **CSS3**: Estilos com variáveis CSS e grid layout
-- **JavaScript ES6+**: Parsing de dados e manipulação DOM
-- **Regex Avançado**: Extração precisa de dados dos relatórios
+- **HTML5**: Modern and responsive interface
+- **CSS3**: Styles with CSS variables and grid layout
+- **JavaScript ES6+**: Data parsing and DOM manipulation
+- **Advanced Regex**: Precise data extraction from reports
 
-## 📊 Formatos Suportados
+## 📊 Supported Formats
 
-### Arquivos HTML (ODIS Engineering)
-- Relatórios de diagnóstico completos
-- Estrutura com `treeView_content`
-- Seções de coding, adaptações e identificação
+### HTML Files (ODIS Engineering)
+- Complete diagnostic reports
+- Structure with `treeView_content`
+- Coding, adaptations, and identification sections
 
-### Arquivos XML (ODIS Protocol)
-- Formato estruturado XML
-- Elementos `<ecu>`, `<ecu_master>`, `<values>`
-- Dados de coding com `bin_value` e `hex_value`
+### XML Files (ODIS Protocol)
+- Structured XML format
+- Elements `<ecu>`, `<ecu_master>`, `<values>`
+- Coding data with `bin_value` and `hex_value`
 
 ## 🎨 Interface
 
-### Design Moderno
-- **Tema claro**: Cores suaves e contrastes adequados
-- **Tipografia**: Fontes system e monospace para dados técnicos
-- **Ícones**: Emojis para identificação visual rápida
+### Modern Design
+- **Light theme**: Soft colors and adequate contrasts
+- **Typography**: System fonts and monospace for technical data
+- **Icons**: Emojis for quick visual identification
 
-### Responsividade
-- **Desktop**: Layout em grid com múltiplas colunas
-- **Mobile**: Adaptação automática para telas menores
-- **Acessibilidade**: Navegação por teclado e leitores de tela
+### Responsiveness
+- **Desktop**: Grid layout with multiple columns
+- **Mobile**: Automatic adaptation for smaller screens
+- **Accessibility**: Keyboard navigation and screen readers
 
-## 🔧 Desenvolvimento
+## 🔧 Development
 
-### Estrutura do Código
+### Code Structure
 ```javascript
-// Principais funções
-extractVehicleInfo()      // Dados básicos do veículo
-extractComponents()       // Componentes ECU
-extractCodingSpecs()     // Bytes de coding
-extractAdaptations()     // Parâmetros de adaptação
-extractSubsystems()      // Subsistemas identificados
+// Main functions
+extractVehicleInfo()      // Basic vehicle data
+extractComponents()       // ECU components
+extractCodingSpecs()     // Coding bytes
+extractAdaptations()     // Adaptation parameters
+extractSubsystems()      // Identified subsystems
 ```
 
-### Padrões de Extração
-- **Regex robustos**: Múltiplos padrões para diferentes estruturas
-- **Fallback**: Padrões alternativos para maior compatibilidade
-- **Validação**: Verificação de dados antes da exibição
+### Extraction Patterns
+- **Robust regex**: Multiple patterns for different structures
+- **Fallback**: Alternative patterns for better compatibility
+- **Validation**: Data verification before display
 
-## 🤝 Contribuição
+## 🤝 Contributing
 
-1. **Fork** o projeto
-2. **Crie** uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
-3. **Commit** suas mudanças (`git commit -am 'Adicionar nova funcionalidade'`)
-4. **Push** para a branch (`git push origin feature/nova-funcionalidade`)
-5. **Abra** um Pull Request
+1. **Fork** the project
+2. **Create** a feature branch (`git checkout -b feature/new-feature`)
+3. **Commit** your changes (`git commit -am 'Add new feature'`)
+4. **Push** to the branch (`git push origin feature/new-feature`)
+5. **Open** a Pull Request
 
 ## 📝 Changelog
 
 ### v1.0.0 (2024-12-19)
-- ✅ Implementação inicial do decodificador
-- ✅ Suporte para arquivos HTML e XML
-- ✅ Decodificação automática de VIN
-- ✅ Extração de especificações de coding
-- ✅ Interface responsiva e moderna
-- ✅ Seções expansíveis para melhor UX
+- ✅ Initial decoder implementation
+- ✅ Support for HTML and XML files
+- ✅ Automatic VIN decoding
+- ✅ Coding specifications extraction
+- ✅ Modern responsive interface
+- ✅ Expandable sections for better UX
 
-## 📄 Licença
+## 📄 License
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+This project is licensed under the MIT License. See the `LICENSE` file for more details.
 
 ## ⚠️ Disclaimer
 
-Este projeto é uma ferramenta independente para análise de dados de diagnóstico. Não é afiliado oficialmente à Volkswagen AG ou ao software ODIS Engineering. Use por sua própria conta e risco.
+This project is an independent tool for diagnostic data analysis. It is not officially affiliated with Volkswagen AG or ODIS Engineering software. Use at your own risk.
 
 ---
 
-**Desenvolvido com ❤️ para a comunidade VW**
+**Developed with ❤️ for the VW community**
 
-🔗 **Links Úteis:**
+🔗 **Useful Links:**
 - [ODIS Engineering](https://www.volkswagen.com)
-- [Documentação VW](https://www.volkswagen.com/technical)
+- [VW Documentation](https://www.volkswagen.com/technical)
 - [Issues](https://github.com/phnahes/vw-odis-backup-viewer/issues)
