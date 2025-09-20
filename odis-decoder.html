@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ODIS Backup Decoder - VW</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --muted: #64748b;
+            --text: #1e293b;
+            --border: #e2e8f0;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+
+        .upload-section {
+            background: var(--card);
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: var(--primary);
+            background: #f8fafc;
+        }
+
+        .upload-section.dragover {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .results {
+            display: none;
+        }
+
+        .vehicle-info {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .vehicle-info h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .info-value {
+            color: var(--muted);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .components-section {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .components-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .component-card {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--success);
+        }
+
+        .component-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .component-name {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 1.1rem;
+        }
+
+        .component-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-ok {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .component-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--text);
+            word-break: break-all;
+        }
+
+        .adaptations-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .adaptations-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .adaptations-list {
+            display: grid;
+            gap: 0.5rem;
+            max-height: none;
+            overflow: visible;
+        }
+
+        .adaptation-session {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid var(--info);
+        }
+
+        .session-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            user-select: none;
+        }
+
+        .session-title:hover {
+            color: var(--primary);
+        }
+
+        .collapse-icon {
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+            transform: rotate(-90deg);
+        }
+
+        .collapse-icon.expanded {
+            transform: rotate(0deg);
+        }
+
+        .collapsible-content {
+            transition: all 0.3s ease;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .collapsible-content.expanded {
+            max-height: none;
+            opacity: 1;
+            margin: initial;
+            padding: initial;
+        }
+
+        .adaptation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: #f8fafc;
+            border-radius: 6px;
+            border-left: 3px solid var(--info);
+        }
+
+        .adaptation-name {
+            font-size: 0.85rem;
+            color: var(--text);
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .adaptation-value {
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-family: 'Courier New', monospace;
+            margin-left: 0.5rem;
+            background: var(--card);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .coding-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .coding-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .coding-title:hover {
+            color: var(--primary);
+        }
+
+        .coding-list {
+            display: grid;
+            gap: 0.5rem;
+            max-height: none;
+            overflow: visible;
+        }
+
+        .coding-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: #f0f9ff;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .coding-byte {
+            font-size: 0.85rem;
+            color: var(--text);
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .coding-value {
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-family: 'Courier New', monospace;
+            margin-left: 0.5rem;
+            background: var(--card);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+
+        .subsystems-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .subsystems-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .subsystems-title:hover {
+            color: var(--primary);
+        }
+
+        .subsystems-list {
+            display: grid;
+            gap: 0.5rem;
+            max-height: none;
+            overflow: visible;
+        }
+
+        .subsystem-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 0.75rem;
+            background: #f0fdf4;
+            border-radius: 6px;
+            border-left: 3px solid var(--success);
+        }
+
+        .subsystem-number {
+            font-size: 0.9rem;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .subsystem-designation {
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        .subsystem-software {
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* VIN Decoder Styles */
+        .vin-decoded-info {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .vin-decoded-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .vin-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .vin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .vin-label {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .vin-value {
+            color: var(--muted);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .vin-value.valid {
+            color: var(--success);
+        }
+
+        .vin-value.invalid {
+            color: var(--error);
+        }
+
+        .vin-error {
+            background: var(--error-light);
+            color: var(--error);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--error);
+            margin: 1rem 0;
+        }
+
+        .vehicle-basic-info {
+            margin-top: 1rem;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid var(--error);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--muted);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .icon {
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .component-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 ODIS Backup Decoder</h1>
+            <p class="subtitle">Decodificador de Relatórios ODIS da Volkswagen</p>
+        </div>
+
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-icon">📁</div>
+            <h3>Selecione ou arraste o arquivo de backup do ODIS</h3>
+            <p style="color: var(--muted); margin: 1rem 0;">Arquivos HTML ou XML gerados pelo ODIS Engineering</p>
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                Selecionar Arquivo
+            </button>
+            <input type="file" id="fileInput" class="file-input" accept=".html,.htm,.xml" onchange="handleFile(this.files[0])">
+        </div>
+
+        <div class="results" id="results">
+            <div class="vehicle-info" id="vehicleInfo">
+                <h2><span class="icon">🚗</span> Informações do Veículo</h2>
+                <div class="info-grid" id="vehicleGrid"></div>
+            </div>
+
+            <div class="components-section" id="componentsSection">
+                <h2><span class="icon">⚙️</span> Componentes Identificados</h2>
+                <div id="componentsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="vin-decoder.js"></script>
+    <script>
+        let anpData = {};
+
+        // Drag and drop functionality
+        const uploadSection = document.getElementById('uploadSection');
+        
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file) return;
+            
+            if (!file.name.toLowerCase().endsWith('.html') && 
+                !file.name.toLowerCase().endsWith('.htm') && 
+                !file.name.toLowerCase().endsWith('.xml')) {
+                showError('Por favor, selecione um arquivo HTML ou XML válido.');
+                return;
+            }
+
+            showLoading();
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    if (file.name.toLowerCase().endsWith('.xml')) {
+                        parseXMLFile(e.target.result);
+                    } else {
+                        parseANPFile(e.target.result);
+                    }
+                } catch (error) {
+                    showError('Erro ao processar o arquivo: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function showLoading() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('uploadSection').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Processando arquivo ANP/ODIS...
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            document.getElementById('uploadSection').innerHTML = `
+                <div class="upload-icon">❌</div>
+                <div class="error-message">${message}</div>
+                <button class="upload-btn" onclick="location.reload()">Tentar Novamente</button>
+            `;
+        }
+
+        function parseANPFile(content) {
+            try {
+                // Parse HTML content
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(content, 'text/html');
+                
+                // Extract vehicle information
+                const vehicleInfo = extractVehicleInfo(doc);
+                
+                // Extract components information
+                const components = extractComponents(doc);
+                
+                anpData = {
+                    vehicle: vehicleInfo,
+                    components: components
+                };
+                
+                displayResults();
+                
+            } catch (error) {
+                showError('Erro ao analisar o arquivo: ' + error.message);
+            }
+        }
+
+        function parseXMLFile(content) {
+            try {
+                // Parse XML content
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(content, 'text/xml');
+                
+                // Extract vehicle information from XML
+                const vehicleInfo = extractVehicleInfoFromXML(doc);
+                
+                // Extract components information from XML
+                const components = extractComponentsFromXML(doc);
+                
+                anpData = {
+                    vehicle: vehicleInfo,
+                    components: components
+                };
+                
+                displayResults();
+                
+            } catch (error) {
+                showError('Erro ao analisar o arquivo XML: ' + error.message);
+            }
+        }
+
+        function extractVehicleInfo(doc) {
+            const info = {};
+            const htmlContent = doc.body.innerHTML;
+            
+            // Extract VIN - more flexible pattern
+            const vinPattern = /<td[^>]*class="default_style"[^>]*><b>VIN<\/b><\/td><td[^>]*class="default_style"[^>]*><b>: <\/b><\/td><td[^>]*class="default_style"[^>]*>&nbsp;<\/td><td[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+            const vinMatch = htmlContent.match(vinPattern);
+            if (vinMatch) {
+                info.vin = vinMatch[1].trim();
+            }
+            
+            // Extract mileage
+            const mileagePattern = /<td[^>]*class="default_style"[^>]*><b>Mileage<\/b><\/td><td[^>]*class="default_style"[^>]*><b>: <\/b><\/td><td[^>]*class="default_style"[^>]*>&nbsp;<\/td><td[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+            const mileageMatch = htmlContent.match(mileagePattern);
+            if (mileageMatch) {
+                info.mileage = mileageMatch[1].trim();
+            }
+            
+            // Extract trip odometer
+            const tripPattern = /<td[^>]*class="default_style"[^>]*><b>Trip odometer<\/b><\/td><td[^>]*class="default_style"[^>]*><b>: <\/b><\/td><td[^>]*class="default_style"[^>]*>&nbsp;<\/td><td[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+            const tripMatch = htmlContent.match(tripPattern);
+            if (tripMatch) {
+                info.tripOdometer = tripMatch[1].trim();
+            }
+            
+            // Extract onboard time
+            const timePattern = /<td[^>]*class="default_style"[^>]*><b>Onboard time<\/b><\/td><td[^>]*class="default_style"[^>]*><b>: <\/b><\/td><td[^>]*class="default_style"[^>]*>&nbsp;<\/td><td[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+            const timeMatch = htmlContent.match(timePattern);
+            if (timeMatch) {
+                info.onboardTime = timeMatch[1].trim();
+            }
+            
+            // Extract MCD project
+            const projectPattern = /<td[^>]*class="default_style"[^>]*><b>MCD project<\/b><\/td><td[^>]*class="default_style"[^>]*><b>: <\/b><\/td><td[^>]*class="default_style"[^>]*>&nbsp;<\/td><td[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+            const projectMatch = htmlContent.match(projectPattern);
+            if (projectMatch) {
+                info.mcdProject = projectMatch[1].trim();
+            }
+            
+            // Extract MCD version
+            const versionPattern = /<td[^>]*class="default_style"[^>]*><b>MCD project version<\/b><\/td><td[^>]*class="default_style"[^>]*><b>: <\/b><\/td><td[^>]*class="default_style"[^>]*>&nbsp;<\/td><td[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+            const versionMatch = htmlContent.match(versionPattern);
+            if (versionMatch) {
+                info.mcdVersion = versionMatch[1].trim();
+            }
+            
+            return info;
+        }
+
+        function extractComponents(doc) {
+            const components = [];
+            const htmlContent = doc.body.innerHTML;
+            
+            // Find all ECU sections using regex patterns
+            const ecuPattern = /<p class="default_style_ecu">ECU: ([^<]+)<\/p>/g;
+            const ecuMatches = [...htmlContent.matchAll(ecuPattern)];
+            
+            ecuMatches.forEach((ecuMatch, index) => {
+                const component = {};
+                component.name = ecuMatch[1].trim();
+                
+                // Find the identification section that follows this ECU
+                const ecuIndex = ecuMatch.index;
+                
+                // Find the next ECU to limit the content scope
+                const nextEcuIndex = index < ecuMatches.length - 1 ? ecuMatches[index + 1].index : htmlContent.length;
+                const ecuSpecificContent = htmlContent.substring(ecuIndex, nextEcuIndex);
+                
+                // Extract system designation - more specific pattern
+                const systemPattern = /<td[^>]*class="default_style"[^>]*><span[^>]*class="default_style_b"[^>]*><\/span><span[^>]*class="default_style_b"[^>]*>System designation<\/span><\/td><td[^>]*colspan="2"[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+                const systemMatch = ecuSpecificContent.match(systemPattern);
+                if (systemMatch) {
+                    component.systemDesignation = systemMatch[1].trim();
+                }
+                
+                // Extract software version
+                const softwarePattern = /<td[^>]*class="default_style"[^>]*><span[^>]*class="default_style_b"[^>]*><\/span><span[^>]*class="default_style_b"[^>]*>Software version<\/span><\/td><td[^>]*colspan="2"[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+                const softwareMatch = ecuSpecificContent.match(softwarePattern);
+                if (softwareMatch) {
+                    component.softwareVersion = softwareMatch[1].trim();
+                }
+                
+                // Extract hardware version
+                const hardwarePattern = /<td[^>]*class="default_style"[^>]*><span[^>]*class="default_style_b"[^>]*><\/span><span[^>]*class="default_style_b"[^>]*>Hardware version<\/span><\/td><td[^>]*colspan="2"[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+                const hardwareMatch = ecuSpecificContent.match(hardwarePattern);
+                if (hardwareMatch) {
+                    component.hardwareVersion = hardwareMatch[1].trim();
+                }
+                
+                // Extract VW/Audi part number
+                const partPattern = /<td[^>]*class="default_style"[^>]*><span[^>]*class="default_style_b"[^>]*><\/span><span[^>]*class="default_style_b"[^>]*>VW\/Audi part number<\/span><\/td><td[^>]*colspan="2"[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+                const partMatch = ecuSpecificContent.match(partPattern);
+                if (partMatch) {
+                    component.partNumber = partMatch[1].trim();
+                }
+                
+                // Extract coding
+                const codingPattern = /<td[^>]*class="default_style"[^>]*><span[^>]*class="default_style_b"[^>]*><\/span><span[^>]*class="default_style_b"[^>]*>Coding<\/span><\/td><td[^>]*colspan="2"[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+                const codingMatch = ecuSpecificContent.match(codingPattern);
+                if (codingMatch) {
+                    component.coding = codingMatch[1].trim();
+                }
+                
+                // Extract adaptations for this component
+                component.adaptations = extractAdaptations(ecuSpecificContent);
+                
+                // Extract coding specifications for this component
+                component.codingSpecs = extractCodingSpecs(ecuSpecificContent);
+                
+                
+                // Extract subsystems for this component
+                component.subsystems = extractSubsystems(ecuSpecificContent);
+                
+                if (component.name) {
+                    components.push(component);
+                }
+            });
+            
+            return components;
+        }
+
+        function extractAdaptations(content) {
+            const adaptations = [];
+            
+            // First, try to extract adaptation sessions (grouped by [VO]_ headers)
+            const sessions = extractAdaptationSessions(content);
+            if (sessions.length > 0) {
+                adaptations.push(...sessions);
+            }
+            
+            // If no sessions found, try multiple patterns to find adaptation sections
+            if (adaptations.length === 0) {
+                const patterns = [
+                    /<span class="treeView_content" id="content_N\d+">.*?007 Read adaptation.*?<\/span>/gs,
+                    /007 Read adaptation.*?<\/span>/gs,
+                    /adaptation.*?<\/span>/gs,
+                    /\[VO\]_.*?<\/span>/gs,
+                    /\[LO\]_.*?<\/span>/gs,
+                    /\[LN\]_.*?<\/span>/gs
+                ];
+                
+                for (const pattern of patterns) {
+                    const adaptationMatches = content.match(pattern);
+                    if (adaptationMatches && adaptationMatches.length > 0) {
+                        adaptationMatches.forEach(adaptationSection => {
+                            // Extract adaptation sessions (grouped by [VO]_ headers)
+                            const sessions = extractAdaptationSessions(adaptationSection);
+                            adaptations.push(...sessions);
+                        });
+                        break; // Use first pattern that finds matches
+                    }
+                }
+            }
+            
+            // If still no sections found, try to extract individual adaptations directly
+            if (adaptations.length === 0) {
+                const directAdaptations = extractDirectAdaptations(content);
+                if (directAdaptations.length > 0) {
+                    adaptations.push({
+                        sessionName: 'Direct Adaptations',
+                        adaptations: directAdaptations
+                    });
+                }
+            }
+            
+            
+            return adaptations;
+        }
+
+        function extractAdaptationSessions(content) {
+            const sessions = [];
+            const lines = content.split('\n');
+            let currentSession = null;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                
+                // Check for session header [VO]_ pattern using exact HTML structure
+                // Only match [VO]_ in the first td (session headers), not in values
+                const sessionPatterns = [
+                    /<span class="default_style_b"><\/span><span class="default_style_b">\[VO\]_([^<]+)<\/span>:\s*<\/td><td[^>]*><span class="default_style">\s*<\/span><\/td>/,
+                    /<span class="default_style_b">\[VO\]_([^<]+)<\/span>:\s*<\/td><td[^>]*><span class="default_style">\s*<\/span><\/td>/
+                ];
+                
+                let sessionMatch = null;
+                for (const pattern of sessionPatterns) {
+                    sessionMatch = line.match(pattern);
+                    if (sessionMatch) break;
+                }
+                
+                if (sessionMatch) {
+                    // Save previous session if exists
+                    if (currentSession) {
+                        sessions.push(currentSession);
+                    }
+                    
+                    // Start new session
+                    currentSession = {
+                        sessionName: sessionMatch[1].trim(),
+                        adaptations: []
+                    };
+                    continue;
+                }
+                
+                // Check for adaptation items [LO]_ pattern using exact HTML structure
+                const adaptationPatterns = [
+                    // Exact pattern from the file - two spans in first td, one span in second td
+                    /<span class="default_style_b"><\/span><span class="default_style_b">\[LO\]_([^<]+)<\/span>:\s*<\/td><td[^>]*><span class="default_style">([^<]+)<\/span><\/td>/,
+                    /<span class="default_style_b"><\/span><span class="default_style_b">\[LN\]_([^<]+)<\/span>:\s*<\/td><td[^>]*><span class="default_style">([^<]+)<\/span><\/td>/,
+                    // Simpler patterns
+                    /<span class="default_style_b">\[LO\]_([^<]+)<\/span>:\s*<\/td><td[^>]*><span class="default_style">([^<]+)<\/span><\/td>/,
+                    /<span class="default_style_b">\[LN\]_([^<]+)<\/span>:\s*<\/td><td[^>]*><span class="default_style">([^<]+)<\/span><\/td>/,
+                    // Fallback patterns
+                    /\[LO\]_([^<]+).*?([^<]+)<\/td>/,
+                    /\[LN\]_([^<]+).*?([^<]+)<\/td>/,
+                    /<span[^>]*>\[LO\]_([^<]+)<\/span>.*?([^<]+)/,
+                    /<span[^>]*>\[LN\]_([^<]+)<\/span>.*?([^<]+)/
+                ];
+                
+                let adaptationMatch = null;
+                for (const pattern of adaptationPatterns) {
+                    adaptationMatch = line.match(pattern);
+                    if (adaptationMatch) break;
+                }
+                
+                if (adaptationMatch && currentSession) {
+                    const adaptation = {
+                        name: adaptationMatch[1].trim(),
+                        value: adaptationMatch[2].trim()
+                    };
+                    
+                    // Clean up the adaptation name
+                    adaptation.name = adaptation.name
+                        .replace(/\[LO\]_|\[LN\]_|\[VO\]_|\[VN\]_/g, '')
+                        .replace(/_/g, ' ')
+                        .replace(/\b\w/g, l => l.toUpperCase());
+                    
+                    currentSession.adaptations.push(adaptation);
+                }
+                
+                // Check for adaptation items [LN]_ pattern (alternative) - more flexible
+                const lnAdaptationPatterns = [
+                    /<td[^>]*><span[^>]*class="default_style_b"[^>]*><\/span><span[^>]*class="default_style_b"[^>]*>\[LN\]_([^<]+)<\/span>: <\/td><td[^>]*><span[^>]*class="default_style"[^>]*>([^<]+)<\/span><\/td>/,
+                    /\[LN\]_([^<]+).*?([^<]+)<\/td>/,
+                    /<span[^>]*>\[LN\]_([^<]+)<\/span>.*?([^<]+)/
+                ];
+                
+                let lnAdaptationMatch = null;
+                for (const pattern of lnAdaptationPatterns) {
+                    lnAdaptationMatch = line.match(pattern);
+                    if (lnAdaptationMatch) break;
+                }
+                
+                if (lnAdaptationMatch && currentSession) {
+                    const adaptation = {
+                        name: lnAdaptationMatch[1].trim(),
+                        value: lnAdaptationMatch[2].trim()
+                    };
+                    
+                    // Clean up the adaptation name
+                    adaptation.name = adaptation.name
+                        .replace(/\[LO\]_|\[LN\]_|\[VO\]_|\[VN\]_/g, '')
+                        .replace(/_/g, ' ')
+                        .replace(/\b\w/g, l => l.toUpperCase());
+                    
+                    currentSession.adaptations.push(adaptation);
+                }
+            }
+            
+            // Save last session if exists
+            if (currentSession) {
+                sessions.push(currentSession);
+            }
+            
+            
+            return sessions;
+        }
+
+        function extractDirectAdaptations(content) {
+            const adaptations = [];
+            const lines = content.split('\n');
+            
+            for (const line of lines) {
+                // Look for adaptation patterns using the exact HTML structure
+                const adaptationPatterns = [
+                    // Exact pattern from the file
+                    /<span class="default_style_b">\[LO\]_([^<]+)<\/span>:\s*<\/td><td[^>]*><span class="default_style">([^<]+)<\/span><\/td>/,
+                    /<span class="default_style_b">\[LN\]_([^<]+)<\/span>:\s*<\/td><td[^>]*><span class="default_style">([^<]+)<\/span><\/td>/,
+                    /<span class="default_style_b">\[VO\]_([^<]+)<\/span>:\s*<\/td><td[^>]*><span class="default_style">([^<]+)<\/span><\/td>/,
+                    // Fallback patterns
+                    /\[LO\]_([^<]+).*?([^<]+)<\/td>/,
+                    /\[LN\]_([^<]+).*?([^<]+)<\/td>/,
+                    /\[VO\]_([^<]+).*?([^<]+)<\/td>/
+                ];
+                
+                for (const pattern of adaptationPatterns) {
+                    const match = line.match(pattern);
+                    if (match) {
+                        const adaptation = {
+                            name: match[1].trim(),
+                            value: match[2].trim()
+                        };
+                        
+                        // Clean up the adaptation name
+                        adaptation.name = adaptation.name
+                            .replace(/\[LO\]_|\[LN\]_|\[VO\]_/g, '')
+                            .replace(/_/g, ' ')
+                            .replace(/\b\w/g, l => l.toUpperCase());
+                        
+                        adaptations.push(adaptation);
+                        break; // Use first match found
+                    }
+                }
+            }
+            
+            return adaptations;
+        }
+
+        function extractCodingSpecs(content) {
+            const codingSpecs = [];
+            
+            // Pattern to find coding sections - look for "006 Read coding" followed by the content
+            const codingPattern = /<span class="treeView_content" id="content_N\d+">[^]*?006 Read coding[^]*?<\/span>/g;
+            const codingMatches = [...content.matchAll(codingPattern)];
+            
+            if (codingMatches && codingMatches.length > 0) {
+                codingMatches.forEach(match => {
+                    const codingSection = match[0];
+                    
+                    // Extract bytes using the actual HTML structure:
+                    // <span class="default_style_b">Byte00</span>: </td><td ...><span class="default_style">
+                    // <tr><td></td><td>0000 0001 ($01)</td></tr>
+                    const bytePattern = /<span class="default_style_b">(Byte\d+)<\/span>:\s*<\/td><td[^>]*><span class="default_style">[^]*?<tr>\s*<td><\/td><td>([^<]+)<\/td>/g;
+                    
+                    let byteMatch;
+                    while ((byteMatch = bytePattern.exec(codingSection)) !== null) {
+                        const codingSpec = {
+                            byte: byteMatch[1].trim(),
+                            value: byteMatch[2].trim()
+                        };
+                        
+                        // Avoid duplicates
+                        if (!codingSpecs.find(spec => spec.byte === codingSpec.byte)) {
+                            codingSpecs.push(codingSpec);
+                        }
+                    }
+                });
+            }
+            
+            // Alternative pattern for different HTML structures
+            if (codingSpecs.length === 0) {
+                // Try a more direct approach - look for Byte patterns anywhere in the content
+                const directBytePattern = /<span class="default_style_b">(Byte\d+)<\/span>:\s*<\/td><td[^>]*>[^]*?<td>([^<]+\([^)]+\))/g;
+                
+                let byteMatch;
+                while ((byteMatch = directBytePattern.exec(content)) !== null) {
+                    const codingSpec = {
+                        byte: byteMatch[1].trim(),
+                        value: byteMatch[2].trim()
+                    };
+                    
+                    // Avoid duplicates
+                    if (!codingSpecs.find(spec => spec.byte === codingSpec.byte)) {
+                        codingSpecs.push(codingSpec);
+                    }
+                }
+            }
+            
+            return codingSpecs;
+        }
+
+        function extractSubsystems(content) {
+            const subsystems = [];
+            
+            // Find subsystem sections using the pattern
+            const subsystemPattern = /<span class="treeView_content" id="content_N\d+"><span class="default_style_bu_topmargin">Subsystem - 001 Identification: <\/span>.*?<\/span>/gs;
+            const subsystemMatches = content.match(subsystemPattern);
+            
+            if (subsystemMatches) {
+                subsystemMatches.forEach(subsystemSection => {
+                    // Extract subsystem number
+                    const numberPattern = /<td[^>]*><span[^>]*class="default_style_b"[^>]*><\/span><span[^>]*class="default_style_b"[^>]*>Subsystem number<\/span><\/td><td[^>]*colspan="2"[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+                    const numberMatch = subsystemSection.match(numberPattern);
+                    
+                    if (numberMatch) {
+                        const subsystem = {
+                            number: numberMatch[1].trim()
+                        };
+                        
+                        // Extract system designation if available
+                        const systemPattern = /<td[^>]*><span[^>]*class="default_style_b"[^>]*><\/span><span[^>]*class="default_style_b"[^>]*>System designation<\/span><\/td><td[^>]*colspan="2"[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+                        const systemMatch = subsystemSection.match(systemPattern);
+                        if (systemMatch) {
+                            subsystem.systemDesignation = systemMatch[1].trim();
+                        }
+                        
+                        // Extract software version if available
+                        const softwarePattern = /<td[^>]*><span[^>]*class="default_style_b"[^>]*><\/span><span[^>]*class="default_style_b"[^>]*>Software version<\/span><\/td><td[^>]*colspan="2"[^>]*class="default_style"[^>]*>([^<]+)<\/td>/;
+                        const softwareMatch = subsystemSection.match(softwarePattern);
+                        if (softwareMatch) {
+                            subsystem.softwareVersion = softwareMatch[1].trim();
+                        }
+                        
+                        subsystems.push(subsystem);
+                    }
+                });
+            }
+            
+            return subsystems;
+        }
+
+        function displayResults() {
+            // Reset upload section
+            document.getElementById('uploadSection').innerHTML = `
+                <div class="upload-icon">✅</div>
+                <h3>Arquivo processado com sucesso!</h3>
+                <p style="color: var(--muted); margin: 1rem 0;">Dados extraídos e organizados</p>
+                <button class="upload-btn" onclick="location.reload()">Processar Outro Arquivo</button>
+            `;
+            
+            // Display vehicle information
+            displayVehicleInfo();
+            
+            // Display components
+            displayComponents();
+            
+            // Show results
+            document.getElementById('results').style.display = 'block';
+            
+            // Initialize collapsible sections
+            initializeCollapsibleSections();
+        }
+
+        function displayVehicleInfo() {
+            const vehicleGrid = document.getElementById('vehicleGrid');
+            const vehicle = anpData.vehicle;
+            
+            const infoItems = [
+                { label: 'VIN', value: vehicle.vin || 'N/A' },
+                { label: 'Quilometragem', value: vehicle.mileage || 'N/A' },
+                { label: 'Odômetro de Viagem', value: vehicle.tripOdometer || 'N/A' },
+                { label: 'Horário Onboard', value: vehicle.onboardTime || 'N/A' },
+                { label: 'Projeto MCD', value: vehicle.mcdProject || 'N/A' },
+                { label: 'Versão MCD', value: vehicle.mcdVersion || 'N/A' }
+            ];
+            
+            let vinDecodedInfo = '';
+            
+            // Decodificar VIN automaticamente se disponível
+            if (vehicle.vin && vehicle.vin !== 'N/A' && vehicle.vin.length === 17) {
+                const decodedVIN = window.vwVINDecoder.decodeVIN(vehicle.vin);
+                vinDecodedInfo = window.vwVINDecoder.formatDecodedInfo(decodedVIN);
+            }
+            
+            vehicleGrid.innerHTML = `
+                ${vinDecodedInfo}
+                <div class="vehicle-basic-info">
+                    ${infoItems.map(item => `
+                        <div class="info-item">
+                            <span class="info-label">${item.label}</span>
+                            <span class="info-value">${item.value}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function displayComponents() {
+            const componentsList = document.getElementById('componentsList');
+            const components = anpData.components;
+            
+            
+            componentsList.innerHTML = components.map(component => {
+                const status = getComponentStatus(component);
+                return `
+                    <div class="component-card">
+                        <div class="component-header">
+                            <span class="component-name">${component.name}</span>
+                            <span class="component-status status-${status}">${status.toUpperCase()}</span>
+                        </div>
+                        <div class="component-details">
+                            ${component.systemDesignation ? `
+                                <div class="detail-item">
+                                    <span class="detail-label">Sistema</span>
+                                    <span class="detail-value">${component.systemDesignation}</span>
+                                </div>
+                            ` : ''}
+                            ${component.softwareVersion ? `
+                                <div class="detail-item">
+                                    <span class="detail-label">Software</span>
+                                    <span class="detail-value">${component.softwareVersion}</span>
+                                </div>
+                            ` : ''}
+                            ${component.hardwareVersion ? `
+                                <div class="detail-item">
+                                    <span class="detail-label">Hardware</span>
+                                    <span class="detail-value">${component.hardwareVersion}</span>
+                                </div>
+                            ` : ''}
+                            ${component.partNumber ? `
+                                <div class="detail-item">
+                                    <span class="detail-label">Número da Peça</span>
+                                    <span class="detail-value">${component.partNumber}</span>
+                                </div>
+                            ` : ''}
+                            ${component.coding ? `
+                                <div class="detail-item">
+                                    <span class="detail-label">Coding</span>
+                                    <span class="detail-value">${component.coding}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        ${component.adaptations && component.adaptations.length > 0 ? `
+                            <div class="adaptations-section">
+                                <h4 class="adaptations-title" onclick="toggleSection('adaptations-${component.name.replace(/[^a-zA-Z0-9]/g, '')}')">
+                                    <span class="collapse-icon">▶</span>🔧 Adaptações
+                                </h4>
+                                <div id="adaptations-${component.name.replace(/[^a-zA-Z0-9]/g, '')}" class="collapsible-content">
+                                    ${component.adaptations.map((session, index) => `
+                                        <div class="adaptation-session">
+                                            <h5 class="session-title" onclick="toggleSection('session-${component.name.replace(/[^a-zA-Z0-9]/g, '')}-${index}')">
+                                                <span class="collapse-icon">▶</span>${session.sessionName}
+                                            </h5>
+                                            <div id="session-${component.name.replace(/[^a-zA-Z0-9]/g, '')}-${index}" class="collapsible-content">
+                                                <div class="adaptations-list">
+                                                    ${session.adaptations.map(adaptation => `
+                                                        <div class="adaptation-item">
+                                                            <span class="adaptation-name">${adaptation.name}</span>
+                                                            <span class="adaptation-value">${adaptation.value}</span>
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${component.codingSpecs && component.codingSpecs.length > 0 ? `
+                            <div class="coding-section">
+                                <h4 class="coding-title" onclick="toggleSection('coding-${component.name.replace(/[^a-zA-Z0-9]/g, '')}')">
+                                    <span class="collapse-icon">▶</span>⚙️ Especificações de Coding
+                                </h4>
+                                <div id="coding-${component.name.replace(/[^a-zA-Z0-9]/g, '')}" class="collapsible-content">
+                                    <div class="coding-list">
+                                        ${component.codingSpecs.map(spec => `
+                                            <div class="coding-item">
+                                                <span class="coding-byte">${spec.byte}</span>
+                                                <span class="coding-value">${spec.value}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        ${component.subsystems && component.subsystems.length > 0 ? `
+                            <div class="subsystems-section">
+                                <h4 class="subsystems-title" onclick="toggleSection('subsystems-${component.name.replace(/[^a-zA-Z0-9]/g, '')}')">
+                                    <span class="collapse-icon">▶</span>🔗 Subgrupos
+                                </h4>
+                                <div id="subsystems-${component.name.replace(/[^a-zA-Z0-9]/g, '')}" class="collapsible-content">
+                                    <div class="subsystems-list">
+                                        ${component.subsystems.map(subsystem => `
+                                            <div class="subsystem-item">
+                                                <span class="subsystem-number">Subgrupo ${subsystem.number}</span>
+                                                ${subsystem.systemDesignation ? `<span class="subsystem-designation">${subsystem.systemDesignation}</span>` : ''}
+                                                ${subsystem.softwareVersion ? `<span class="subsystem-software">SW: ${subsystem.softwareVersion}</span>` : ''}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getComponentStatus(component) {
+            if (component.softwareVersion === 'NOT_SUPPORTED' || 
+                component.hardwareVersion === 'NOT_SUPPORTED') {
+                return 'warning';
+            }
+            if (component.systemDesignation && component.softwareVersion) {
+                return 'ok';
+            }
+            return 'error';
+        }
+
+        function toggleSection(sectionId) {
+            const content = document.getElementById(sectionId);
+            const icon = content.previousElementSibling.querySelector('.collapse-icon');
+            
+            if (content.classList.contains('expanded')) {
+                // Collapse
+                content.classList.remove('expanded');
+                icon.classList.remove('expanded');
+                icon.textContent = '▶';
+            } else {
+                // Expand
+                content.classList.add('expanded');
+                icon.classList.add('expanded');
+                icon.textContent = '▼';
+            }
+        }
+
+        // Initialize all sections as collapsed by default
+        function initializeCollapsibleSections() {
+            // All sections start collapsed, so no need to add 'expanded' class initially
+        }
+
+        function extractVehicleInfoFromXML(doc) {
+            const info = {};
+            
+            // Extract vehicle data
+            const vehicleDataElements = doc.querySelectorAll('vehicle_data');
+            
+            vehicleDataElements.forEach(element => {
+                const displayName = element.querySelector('display_name');
+                const displayValue = element.querySelector('display_value');
+                
+                if (displayName && displayValue) {
+                    const name = displayName.textContent.trim();
+                    const value = displayValue.textContent.trim();
+                    
+                    if (name === 'vin') {
+                        info.vin = value;
+                    } else if (name === 'mileage') {
+                        // Find unit of mileage
+                        const unitElement = Array.from(vehicleDataElements).find(el => {
+                            const nameEl = el.querySelector('display_name');
+                            return nameEl && nameEl.textContent.trim() === 'unit_of_mileage';
+                        });
+                        const unit = unitElement ? unitElement.querySelector('display_value').textContent.trim() : 'km';
+                        info.mileage = value + ' ' + unit;
+                    } else if (name === 'onboard_time') {
+                        info.onboardTime = value;
+                    } else if (name === 'diag_filter_state') {
+                        info.diagFilterState = value;
+                    }
+                }
+            });
+            
+            return info;
+        }
+
+        function extractComponentsFromXML(doc) {
+            const components = [];
+            
+            // Find all ECU elements
+            const ecuElements = doc.querySelectorAll('ecu');
+            
+            ecuElements.forEach(ecu => {
+                const component = {};
+                
+                // Extract ECU ID and name
+                const ecuId = ecu.querySelector('ecu_id');
+                const ecuName = ecu.querySelector('ecu_name');
+                if (ecuId && ecuName) {
+                    component.name = `${ecuId.textContent.trim()} - ${ecuName.textContent.trim()}`;
+                }
+                
+                // Extract identification data
+                const identElement = ecu.querySelector('ecu_master[type="ident"]');
+                if (identElement) {
+                    const values = identElement.querySelectorAll('values');
+                    values.forEach(value => {
+                        const displayName = value.querySelector('display_name');
+                        const displayValue = value.querySelector('display_value');
+                        if (displayName && displayValue) {
+                            const name = displayName.textContent.trim();
+                            const val = displayValue.textContent.trim();
+                            
+                            if (name === 'System designation') {
+                                component.systemDesignation = val;
+                            } else if (name === 'Software version') {
+                                component.softwareVersion = val;
+                            } else if (name === 'Hardware version') {
+                                component.hardwareVersion = val;
+                            } else if (name === 'VW/Audi part number') {
+                                component.partNumber = val;
+                            } else if (name === 'Coding') {
+                                component.coding = val;
+                            }
+                        }
+                    });
+                }
+                
+                // Extract adaptations
+                component.adaptations = extractAdaptationsFromXML(ecu);
+                
+                // Extract coding specifications
+                component.codingSpecs = extractCodingSpecsFromXML(ecu);
+                
+                
+                
+                // Extract subsystems
+                component.subsystems = extractSubsystemsFromXML(ecu);
+                
+                if (component.name) {
+                    components.push(component);
+                }
+            });
+            
+            return components;
+        }
+
+        function extractAdaptationsFromXML(ecuElement) {
+            const sessions = [];
+            
+            // Find adaptation master
+            const adaptationElement = ecuElement.querySelector('ecu_master[type="adaption_read"]');
+            if (!adaptationElement) return sessions;
+            
+            // Find all top-level adaptation values (sessions)
+            const adaptationValues = adaptationElement.querySelectorAll('> values');
+            
+            adaptationValues.forEach(sessionValue => {
+                const sessionDisplayName = sessionValue.querySelector('display_name');
+                if (!sessionDisplayName) return;
+                
+                const sessionName = sessionDisplayName.textContent.trim();
+                
+                // Check if this is a session header [VN]_
+                if (sessionName.startsWith('[VN]_')) {
+                    const session = {
+                        sessionName: sessionName.replace('[VN]_', ''),
+                        adaptations: []
+                    };
+                    
+                    // Find nested adaptation items within this session
+                    const nestedValues = sessionValue.querySelectorAll('values');
+                    nestedValues.forEach(nestedValue => {
+                        const nestedDisplayName = nestedValue.querySelector('display_name');
+                        const nestedDisplayValue = nestedValue.querySelector('display_value');
+                        
+                        if (nestedDisplayName && nestedDisplayValue) {
+                            const name = nestedDisplayName.textContent.trim();
+                            const val = nestedDisplayValue.textContent.trim();
+                            
+                            if (name.startsWith('[LO]_') || name.startsWith('[LN]_')) {
+                                const adaptation = {
+                                    name: name.replace(/\[LO\]_|\[LN\]_/g, ''),
+                                    value: val
+                                };
+                                
+                                // Clean up the adaptation name
+                                adaptation.name = adaptation.name
+                                    .replace(/\[VN\]_/g, '')
+                                    .replace(/_/g, ' ')
+                                    .replace(/\b\w/g, l => l.toUpperCase());
+                                
+                                session.adaptations.push(adaptation);
+                            }
+                        }
+                    });
+                    
+                    if (session.adaptations.length > 0) {
+                        sessions.push(session);
+                    }
+                }
+            });
+            
+            return sessions;
+        }
+
+        function extractCodingSpecsFromXML(ecuElement) {
+            const codingSpecs = [];
+            
+            // Find all ecu_master elements and check their type
+            const allMasters = ecuElement.querySelectorAll('ecu_master');
+            let codingElement = null;
+            
+            for (const master of allMasters) {
+                const masterType = master.getAttribute('type');
+                if (masterType === 'coding_read') {
+                    codingElement = master;
+                    break;
+                }
+            }
+            
+            if (!codingElement) {
+                return codingSpecs;
+            }
+            
+            // Get all values elements within the coding section
+            const valueElements = codingElement.querySelectorAll('values');
+            
+            for (const valueElement of valueElements) {
+                const displayNameEl = valueElement.querySelector('display_name');
+                const binValueEl = valueElement.querySelector('bin_value');
+                const hexValueEl = valueElement.querySelector('hex_value');
+                
+                if (displayNameEl && binValueEl && hexValueEl) {
+                    const byteName = displayNameEl.textContent.trim();
+                    const binValue = binValueEl.textContent.trim();
+                    const hexValue = hexValueEl.textContent.trim();
+                    
+                    // Only process Byte entries
+                    if (byteName.startsWith('Byte')) {
+                        // Format binary with spaces: 0000 0000
+                        const formattedBin = binValue.replace(/(.{4})/g, '$1 ').trim();
+                        // Format final value: 0000 0000 ($HEX)
+                        const formattedValue = `${formattedBin} ($${hexValue.toUpperCase()})`;
+                        
+                        codingSpecs.push({
+                            byte: byteName,
+                            value: formattedValue
+                        });
+                    }
+                }
+            }
+            
+            return codingSpecs;
+        }
+
+        function extractSubsystemsFromXML(ecuElement) {
+            const subsystems = [];
+            
+            // Find subsystem elements
+            const subsystemElements = ecuElement.querySelectorAll('ecu_slave');
+            
+            subsystemElements.forEach(subsystem => {
+                const subsystemData = {};
+                
+                // Extract subsystem number
+                const subsystemNumber = subsystem.querySelector('ecu_id');
+                if (subsystemNumber) {
+                    subsystemData.number = subsystemNumber.textContent.trim();
+                }
+                
+                // Extract identification data for subsystem
+                const identElement = subsystem.querySelector('ecu_master[type="ident"]');
+                if (identElement) {
+                    const values = identElement.querySelectorAll('values');
+                    values.forEach(value => {
+                        const displayName = value.querySelector('display_name');
+                        const displayValue = value.querySelector('display_value');
+                        if (displayName && displayValue) {
+                            const name = displayName.textContent.trim();
+                            const val = displayValue.textContent.trim();
+                            
+                            if (name === 'System designation') {
+                                subsystemData.systemDesignation = val;
+                            } else if (name === 'Software version') {
+                                subsystemData.softwareVersion = val;
+                            }
+                        }
+                    });
+                }
+                
+                if (subsystemData.number) {
+                    subsystems.push(subsystemData);
+                }
+            });
+            
+            return subsystems;
+        }
+
+    </script>
+</body>
+</html>
